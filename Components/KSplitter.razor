@@ -1,0 +1,69 @@
+﻿@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+<div class="k-splitter">
+    <div id="@FirstId" class="k-splitter-first">
+        @FirstChild
+    </div>
+    <div id="@SecondId" class="k-splitter-second">
+        @SecondChild
+    </div>
+</div>
+
+<style>
+    .k-splitter {
+        display: flex;
+        flex-direction: @(Orientation == KSplitterOrientation.Horizontal ? "row" : "column");
+    }
+
+    .k-splitter-first {
+
+    }
+
+    .k-splitter-second {
+
+    }
+
+    .gutter {
+        /*background-color: rgb(var(--bs-tertiary-bg-rgb)) !important;*/
+        background-repeat: no-repeat;
+        background-position: 50%;
+    }
+
+    .gutter.gutter-horizontal {
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+        cursor: @(Orientation == KSplitterOrientation.Horizontal ? "ew-resize" : "ns-resize");
+    }
+</style>
+
+<script>
+    function initSplit(firstId, secondId){
+        Split(["#" + firstId, "#" + secondId], {gutterSize: 3});
+    }
+</script>
+
+@code {
+    [Parameter] [EditorRequired] public RenderFragment FirstChild { get; set; } = null!;
+    [Parameter] [EditorRequired] public RenderFragment SecondChild { get; set; } = null!;
+
+    [Parameter] public string FirstId { get; set; } = "a" + Guid.NewGuid().ToString();
+    [Parameter] public string SecondId { get; set; } = "a" + Guid.NewGuid().ToString();
+
+    [Parameter] public KSplitterOrientation Orientation { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initSplit", FirstId, SecondId);
+        }
+    }
+
+    public enum KSplitterOrientation
+    {
+        Horizontal,
+        Vertical
+    }
+
+}
+

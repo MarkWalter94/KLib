@@ -1,0 +1,51 @@
+﻿@using Microsoft.JSInterop
+
+@* @inject IJSRuntime JSRuntime; *@
+<div>
+    <label for="@Id" class="form-label">@Placeholder</label>
+    <input id="@Id" @attributes="InputAttributes" type="@InputType" class="ktextbox form-control @CssClass"
+          value="@Text" @oninput="OnInput"/>
+
+</div>
+
+@code {
+    [Parameter] public string? InputType { get; set; } = "text";
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string? Placeholder { get; set; }
+
+    [Parameter] [EditorRequired] public string Text { get; set; } = null!;
+
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
+
+    [Parameter] public bool ShowClearButton { get; set; }
+
+    [Parameter] public string? CssClass { get; set; }
+
+    // bool IsPasswordVisible = false;
+
+    // [Parameter] public InputType Type { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    // private async Task Created()
+    // {
+    //     if (Type == InputType.Password)
+    //         await _textBoxObject.AddIconAsync("append", "e-icons e-eye", new Dictionary<string, object>() { { "onclick", EventCallback.Factory.Create<MouseEventArgs>(this, PasswordClick) } });
+    // }
+
+    // private async Task PasswordClick()
+    // {
+    //     IsPasswordVisible = !IsPasswordVisible;
+    //     this.Type = IsPasswordVisible ? InputType.Text : InputType.Password;
+    //
+    //     await JSRuntime.InvokeAsync<object>("showhidePassword", _textBoxObject.ID);
+    // }
+
+    private void OnInput(ChangeEventArgs obj)
+    {
+        Text = obj.Value?.ToString() ?? string.Empty;
+        TextChanged.InvokeAsync(Text);
+    }
+
+}

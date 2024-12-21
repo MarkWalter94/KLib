@@ -1,0 +1,6 @@
+<div @attributes="InputAttributes" class="spinner-border centered" role="status"></div>
+
+@code {
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+}

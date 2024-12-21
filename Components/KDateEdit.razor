@@ -1,0 +1,33 @@
+﻿@using System.Linq.Expressions
+
+@* <SfDatePicker Min="@Min" Max="@Max" FloatLabelType="FloatLabelType.Always" Value="Value" ValueChanged="@(async (DateTime d) => await ValueChangedInternal(d))" ValueExpression="ValueExpression" Format="@Format" Placeholder="@Placeholder"> </SfDatePicker> *@
+
+@code {
+
+    [Parameter] public DateTime Value { get; set; }
+    
+    [Parameter] public EventCallback<DateTime> ValueChanged { get; set; }
+
+    // [Parameter] public InputDateType InputDateType { get; set; } = InputDateType.Date;
+
+    [Parameter] public string? Placeholder { get; set; }
+
+    [Parameter] public Expression<Func<DateTime>>? ValueExpression { get; set; }
+
+    [Parameter] public string? Format { get; set; }
+    
+    [Parameter] public DateTime Min { get; set; } = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    
+    [Parameter] public DateTime Max { get; set; } = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    private async Task ValueChangedInternal(DateTime newValue)
+    {
+        //HACK: per bug syncfusion per il quale il componente cambia il kind della data a LOCAL.
+        //TODO: Qui per eventuale risoluzione https://www.syncfusion.com/forums/187492/sfdatepicker-changes-kind-to-local
+        if (newValue.Kind == DateTimeKind.Utc)
+            await ValueChanged.InvokeAsync(newValue);
+        else
+            await ValueChanged.InvokeAsync(new DateTime(newValue.Year, newValue.Month, newValue.Day, 0, 0,0, DateTimeKind.Utc));
+    }
+
+}

@@ -1,0 +1,38 @@
+﻿<div @onclick="@OnClick" class="@($"kcard2container{(CssClass==null?"":($" {CssClass}"))}")" @attributes="InputAttributes">
+    <div style="display: flex;align-items: center; margin-bottom: 10px;">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <h3>@Title</h3>
+        }
+
+        @if (HeaderContent != null)
+        {
+            @HeaderContent
+        }
+    </div>
+
+    @ChildContent
+
+</div>
+
+<style>
+    .kcard2container {
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        /*background: var(--background-on);*/
+    }
+</style>
+
+@code {
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+
+    [Parameter] public string? CssClass { get; set; }
+
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? HeaderContent { get; set; }
+    [EditorRequired] [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+}

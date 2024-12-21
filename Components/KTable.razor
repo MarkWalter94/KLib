@@ -1,0 +1,102 @@
+﻿@using Microsoft.JSInterop
+@typeparam TRowData
+@attribute [CascadingTypeParameter(nameof(TRowData))]
+
+@inject IJSRuntime JSRuntime
+<CascadingValue IsFixed="true" Value="this">@ChildContent</CascadingValue>
+
+<table class="table table-sm table-hover" @attributes="@TableAttributes">
+    <thead>
+    <tr>
+        @foreach (var column in columns)
+        {
+            @column.HeaderTemplate
+        }
+    </tr>
+    </thead>
+    <tbody>
+    @{
+        if (Items != null)
+        {
+            var index = 0;
+            foreach (var item in Items)
+            {
+                <tr id="@GetId(item!.GetHashCode())" @onclick="async (e)=> await OnRowClick((GetId(item!.GetHashCode())),item)"
+                    @key="item.GetHashCode()" class="@(RowClass?.Invoke(item, index++))">
+                    @foreach (var column in columns)
+                    {
+                        @column.CellTemplate(item)
+                    }
+                </tr>
+            }
+        }
+    }
+    </tbody>
+</table>
+
+<script>
+    function selectTableRow(rowId){
+        var tableRow = document.getElementById(rowId);
+        tableRow.classList.add("table-active");
+    }
+
+    function deselectTableRow(rowId){
+        var tableRow = document.getElementById(rowId);
+        tableRow.classList.remove("table-active");
+    }
+</script>
+
+@code {
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> TableAttributes { get; set; } = null!;
+
+    [Parameter] [EditorRequired] public IEnumerable<TRowData>? Items { get; set; }
+
+    [Parameter] public TRowData? SelectedItem { get; set; }
+
+    [Parameter] public EventCallback<TRowData> SelectedItemChanged { get; set; }
+
+    [Parameter] [EditorRequired] public RenderFragment ChildContent { get; set; } = null!;
+
+    [Parameter] public Func<TRowData, int, string>? RowClass { get; set; }
+
+    private readonly List<KTableColumn<TRowData>> columns = new();
+
+    private readonly Dictionary<int, string> _ids = new();
+
+    private string GetId(int index)
+    {
+        if (!_ids.ContainsKey(index))
+        {
+            _ids[index] = Guid.NewGuid().ToString();
+        }
+
+        return _ids[index];
+    }
+
+    internal void AddColumn(KTableColumn<TRowData> column)
+    {
+        columns.Add(column);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnRowClick(string rowId, TRowData item)
+    {
+        if (this.SelectedItem != null)
+        {
+            await JSRuntime.InvokeVoidAsync("deselectTableRow", GetId(this.SelectedItem.GetHashCode()));
+        }
+        await JSRuntime.InvokeVoidAsync("selectTableRow", rowId);
+        SelectedItem = item;
+        await SelectedItemChanged.InvokeAsync(item);
+    }
+
+}

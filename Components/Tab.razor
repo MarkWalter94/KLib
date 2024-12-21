@@ -1,0 +1,27 @@
+﻿<li class="nav-item" role="presentation">
+    <a id="@($"{Id}-tab")" class="@("nav-link" + (IsActive ? " active" : ""))" href="#" data-bs-toggle="tab"
+       data-bs-target="#@Id" role="tab" aria-controls="@Id">
+        <div style="display:flex; flex-direction: row;">
+            @if (Title != null)
+            {
+                <h5>@Title</h5>
+            }
+            @if (ChildContent != null)
+            {
+                @ChildContent
+            }
+        </div>
+    </a>
+</li>
+
+@code {
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public string? Title { get; set; }
+
+    [Parameter] [EditorRequired] public string Id { get; set; } = null!;
+
+    [Parameter] public bool IsActive { get; set; }
+
+}

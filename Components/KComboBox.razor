@@ -1,0 +1,105 @@
+﻿@using System.ComponentModel
+
+@typeparam TValue
+@typeparam TItem
+
+<select class="form-select" aria-label="@AreaLabel" @onchange="OnValueChanged">
+    @if (DataSource == null)
+    {
+        <option value="" selected disabled>Loading...</option>
+    }
+    else
+    {
+        if (Value == null)
+        {
+            <option value="" selected>@Placeholder</option>
+        }
+        else
+        {
+            <option value="">@Placeholder</option>
+        }
+
+        @foreach (var item in DataSource)
+        {
+            if (Value != null && GetValue(item)!.Equals(Value))
+            {
+                <option value="@GetValue(item)" selected>@GetDescription(item)</option>
+            }
+            else
+            {
+                <option value="@GetValue(item)">@GetDescription(item)</option>
+            }
+        }
+    }
+</select>
+
+@code {
+    [Parameter] public string AreaLabel { get; set; } = null!;
+
+    [Parameter] public string Placeholder { get; set; } = null!;
+
+    [Parameter] public TValue? Value { get; set; }
+
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+
+    [Parameter] [EditorRequired] public IEnumerable<TItem>? DataSource { get; set; }
+
+    [Parameter] public string? ValueField { get; set; }
+
+    [Parameter] public string? DisplayField { get; set; }
+
+    private TValue GetValue(TItem item)
+    {
+        if (ValueField == null)
+            return (TValue)((object?)item!);
+        return (TValue)item!.GetType().GetProperty(ValueField)!.GetValue(item)!;
+    }
+
+    private string? GetDescription(TItem item)
+    {
+        if (item == null)
+            return default;
+
+        if (DisplayField == null)
+            return item.ToString();
+
+        var splitted = DisplayField.Split(".");
+        if (splitted.Length > 1)
+        {
+            object? obj = item;
+            foreach (var prop in splitted)
+            {
+                if (obj == null)
+                    return default;
+                obj = obj.GetType().GetProperty(prop)!.GetValue(obj);
+            }
+            if (obj == null)
+                return default;
+            
+            return (string?)obj;
+        }
+        else
+        {
+            return (string?)item.GetType().GetProperty(DisplayField)!.GetValue(item);
+        }
+    }
+
+
+    private async Task OnValueChanged(ChangeEventArgs obj)
+    {
+        var newValue = obj.Value;
+
+        if (newValue == null || string.IsNullOrEmpty(newValue.ToString()))
+        {
+            Value = default;
+            await ValueChanged.InvokeAsync(Value);
+            return;
+        }
+
+        var typeConverter = TypeDescriptor.GetConverter(typeof(TValue));
+
+        Value = (TValue)typeConverter.ConvertFromString(newValue.ToString()!)!;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+}

@@ -1,0 +1,73 @@
+﻿<div class="k-collapsible" @attributes="InputAttributes">
+
+    <div class="k-collapsible-header" @onclick="Toggle">
+        <div style="display: flex; flex-direction:row;">
+            @Header
+            <div style="margin-left:5px;">
+                @if (IsOpen)
+                {
+                    <span class="material-icons">
+                        expand_less
+                    </span>
+                }
+                else
+                {
+                    <span class="material-icons">
+                        expand_more
+                    </span>
+                }
+            </div>
+        </div>
+
+    </div>
+    @if (Collapsable)
+    {
+        <div class="k-collapsible-content" style="display: @(IsOpen ? "block" : "none")">
+            @ChildContent
+        </div>
+    }
+</div>
+
+<style>
+    .k-collapsible {
+    }
+
+    .k-collapsible-header {
+        cursor: pointer;
+        /*padding: 18px;*/
+        width: 100%;
+        border: none;
+    }
+
+    .k-collapsible-content {
+        /*padding: 0 18px;*/
+        /*max-height: 0;*/
+        overflow: hidden;
+        /*transition: max-height 0.2s ease-out;*/
+    }
+</style>
+
+@code {
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+
+    [Parameter] [EditorRequired] public RenderFragment ChildContent { get; set; } = null!;
+
+    [Parameter] [EditorRequired] public RenderFragment Header { get; set; } = null!;
+
+    [Parameter] public bool Collapsable { get; set; } = true;
+
+    [Parameter] public bool IsOpen { get; set; }
+
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+
+    private async Task Toggle()
+    {
+        if (!Collapsable)
+            return;
+        IsOpen = !IsOpen;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+    }
+
+}

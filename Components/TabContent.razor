@@ -1,0 +1,77 @@
+﻿@inject IJSRuntime JSRuntime
+
+@using Microsoft.JSInterop
+@implements IDisposable
+
+<div class="tab-content" id="@TabContentId">
+    @if (ChildContent != null)
+    {
+        <div class="@("tab-pane fade show" + (IsActive ? " active":""))" id="@Id" role="tabpanel" aria-labelledby="@($"{Id}-tab")">
+            @if (TabShown)
+            {
+                @ChildContent
+            }
+        </div>
+    }
+</div>
+
+<script>
+    function attachTabShownEvent(tabId, dotnethelper) {
+        document.getElementById(tabId).addEventListener('shown.bs.tab', function (e) {
+            dotnethelper.invokeMethodAsync('OnTabShownInternal',e.target.id);
+        });
+    }
+</script>
+
+@code {
+    private string TabContentId => $"tab-content-{Id}";
+    private DotNetObjectReference<TabContent>? _objRef;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] [EditorRequired] public string Id { get; set; } = null!;
+
+    [Parameter] public EventCallback OnTabShown { get; set; }
+
+    [Parameter] public bool ForceTabReRenderOnShown { get; set; }
+    
+    [Parameter] public bool IsActive { get; set; }
+
+    private bool TabShown { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        _objRef = DotNetObjectReference.Create(this);
+
+        base.OnInitialized();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            JSRuntime.InvokeVoidAsync("attachTabShownEvent", $"{Id}-tab", _objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnTabShownInternal()
+    {
+        if (ForceTabReRenderOnShown)
+        {
+            TabShown = false;
+            StateHasChanged();
+            TabShown = true;
+            StateHasChanged();
+        }
+
+        await OnTabShown.InvokeAsync();
+    }
+
+    public void Dispose()
+    {
+        _objRef?.Dispose();
+    }
+
+}

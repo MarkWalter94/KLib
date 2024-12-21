@@ -1,0 +1,139 @@
+﻿@using KLib.Classes
+@using KLib.Messages
+@using KLib.Services
+@using MessagePipe
+
+@implements IDisposable
+
+@inject ISessionService CurrentSessionService
+@inject ISubscriber<KThemeChangedMessage> ThemeChangedSubscriber
+
+
+<button @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn {CssClassStr}")
+        onclick="@OnClick" @onclick:stopPropagation="true" disabled="@(Disabled || IsExecuting)">
+    @if (!string.IsNullOrEmpty(MaterialUIIconCode))
+    {
+        <span style="@("margin-right: 5px;" + MaterialUIIConStyle)"
+              class="material-symbols-outlined">@MaterialUIIconCode</span>
+    }
+    @Content
+    @if (this.IsExecuting)
+    {
+        <KSpinner style="margin-left:5px;"/>
+    }
+    @ChildContent
+
+    @if (ButtonType == KButtonType.GoTo)
+    {
+        <span class="material-symbols-outlined" style="margin-left: auto;">navigate_next</span>
+    }
+</button>
+
+<style>
+    .kbutton{
+        display: inline-flex;
+        align-items: center;
+        height: 40px;
+    }
+</style>
+
+@code {
+    [Parameter] public string? Content { get; set; }
+
+    [Parameter] public bool Disabled { get; set; }
+
+    [Parameter] public string? CssClass { get; set; }
+
+    [Parameter] public string? FabIconCss { get; set; }
+
+    [Parameter] public string? MaterialUIIconCode { get; set; }
+
+    [Parameter] public string? MaterialUIIConStyle { get; set; }
+
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public KButtonType? ButtonType { get; set; }
+
+    [Parameter] public string? Type { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+
+    private bool _isExecuting;
+
+    [Parameter]
+    public bool IsExecuting
+    {
+        get => _isExecuting;
+        set
+        {
+            _isExecuting = value;
+            this.StateHasChanged();
+        }
+    }
+
+
+    private string? CssClassStr { get; set; }
+    private IDisposable? _suscriber;
+
+    protected override void OnInitialized()
+    {
+        UpdateCssClass();
+        _suscriber = ThemeChangedSubscriber.Subscribe(_ =>
+        {
+            UpdateCssClass();
+            StateHasChanged();
+        });
+    }
+
+    private void UpdateCssClass()
+    {
+        CssClassStr = ButtonTypeToString(this.ButtonType);
+        if (!string.IsNullOrEmpty(CssClass))
+        {
+            if (CssClassStr == null)
+                CssClassStr = string.Empty;
+            if (!string.IsNullOrWhiteSpace(CssClassStr))
+                CssClassStr += " ";
+            CssClassStr += CssClass;
+        }
+    }
+
+
+    private string? ButtonTypeToString(KButtonType? buttonType)
+    {
+        if (buttonType == null)
+            return null;
+        switch (buttonType)
+        {
+            case KButtonType.Success: return "btn-success";
+            case KButtonType.Info: return "btn-info";
+            case KButtonType.Link: return "btn-link";
+            case KButtonType.Primary: return "btn-primary";
+            case KButtonType.Warning: return "btn-warning";
+            case KButtonType.Danger: return "btn-danger";
+            case KButtonType.Flat: return "btn";
+            case KButtonType.GoTo:
+            {
+                if (CurrentSessionService.GetCurrentTheme() == KTheme.Dark)
+                {
+                    return "btn btn-outline-light";
+                }
+                else
+                {
+                    return "btn btn-outline-dark";
+                }
+            }
+
+            default: throw new NotImplementedException();
+        }
+    }
+
+    public void Dispose()
+    {
+        _suscriber?.Dispose();
+    }
+
+}

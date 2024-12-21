@@ -1,0 +1,12 @@
+﻿<KSwitch IsSwitch="false" Checked="Checked" CheckedChanged="CheckedChanged" Placeholder="@Placeholder"/>
+
+@code {
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    [Parameter]
+    public bool Checked { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> CheckedChanged { get; set; }
+}

@@ -1,0 +1,13 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+<span style="margin-bottom:10px;" @onclick=@GoBackAction class="material-symbols-outlined">arrow_back</span>
+
+@code {
+
+    private async Task GoBackAction()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+}
