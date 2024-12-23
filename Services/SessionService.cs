@@ -16,7 +16,7 @@ internal class SessionService : ISessionService
     private KTheme _currentTheme;
     private readonly IDisposable _themeChangedSubscription;
 
-    internal SessionService(ISubscriber<KThemeChangedMessage> subscriber)
+    public SessionService(ISubscriber<KThemeChangedMessage> subscriber)
     {
         _themeChangedSubscription = subscriber.Subscribe(x =>
         {

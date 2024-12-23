@@ -2,7 +2,7 @@
 
 namespace KLib.Messages;
 
-internal class KThemeChangedMessage
+public class KThemeChangedMessage
 {
     internal KTheme NewTheme { get; }
 
