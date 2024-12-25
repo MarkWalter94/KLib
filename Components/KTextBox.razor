@@ -1,8 +1,11 @@
 ﻿@* @inject IJSRuntime JSRuntime; *@
 <div>
-    <label for="@Id" class="form-label">@Placeholder</label>
+    @if (!string.IsNullOrWhiteSpace(Placeholder))
+    {
+        <label for="@Id" class="form-label">@Placeholder</label>
+    }
     <input id="@Id" @attributes="InputAttributes" type="@InputType" class="ktextbox form-control @CssClass"
-          value="@Text" @oninput="OnInput"/>
+           value="@Text" @oninput="OnInput"/>
 
 </div>
 
