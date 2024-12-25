@@ -13,7 +13,7 @@ public class KLibService : IKLibService
     private readonly IPublisher<KThemeChangedMessage> _kThemeChangedPublisher;
     private KTheme _currentTheme;
 
-    internal KLibService(IPublisher<KThemeChangedMessage> kThemeChangedPublisher)
+    public KLibService(IPublisher<KThemeChangedMessage> kThemeChangedPublisher)
     {
         _kThemeChangedPublisher = kThemeChangedPublisher;
     }

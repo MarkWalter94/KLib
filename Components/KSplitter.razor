@@ -1,7 +1,7 @@
 ﻿@using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 
-<div class="k-splitter">
+<div class="k-splitter" style="flex-direction: @(Orientation == KSplitterOrientation.Horizontal ? "row" : "column");">
     <div id="@FirstId" class="k-splitter-first">
         @FirstChild
     </div>
@@ -11,18 +11,6 @@
 </div>
 
 <style>
-    .k-splitter {
-        display: flex;
-        flex-direction: @(Orientation == KSplitterOrientation.Horizontal ? "row" : "column");
-    }
-
-    .k-splitter-first {
-
-    }
-
-    .k-splitter-second {
-
-    }
 
     .gutter {
         /*background-color: rgb(var(--bs-tertiary-bg-rgb)) !important;*/

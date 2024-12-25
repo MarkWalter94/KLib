@@ -1,0 +1,66 @@
+﻿/* fallback */
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url('materialiconsfont.woff2') format('woff2');
+}
+
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+.kbutton{
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+}
+
+.kcard2container {
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    /*background: var(--background-on);*/
+}
+
+.k-collapsible {
+}
+
+.k-collapsible-header {
+    cursor: pointer;
+    /*padding: 18px;*/
+    width: 100%;
+    border: none;
+}
+
+.k-collapsible-content {
+    /*padding: 0 18px;*/
+    /*max-height: 0;*/
+    overflow: hidden;
+    /*transition: max-height 0.2s ease-out;*/
+}
+
+.k-splitter {
+    display: flex;
+
+}
+
+.k-splitter-first {
+
+}
+
+.k-splitter-second {
+
+}

@@ -3,20 +3,23 @@
     <div class="k-collapsible-header" @onclick="Toggle">
         <div style="display: flex; flex-direction:row;">
             @Header
-            <div style="margin-left:5px;">
-                @if (IsOpen)
-                {
+            @if (Collapsable)
+            {
+                <div style="margin-left:auto;">
+                    @if (IsOpen)
+                    {
                     <span class="material-icons">
-                        expand_less
-                    </span>
-                }
-                else
-                {
+                            expand_less
+                        </span>
+                    }
+                    else
+                    {
                     <span class="material-icons">
-                        expand_more
-                    </span>
-                }
-            </div>
+                            expand_more
+                        </span>
+                    }
+                </div>
+            }
         </div>
 
     </div>
@@ -27,25 +30,6 @@
         </div>
     }
 </div>
-
-<style>
-    .k-collapsible {
-    }
-
-    .k-collapsible-header {
-        cursor: pointer;
-        /*padding: 18px;*/
-        width: 100%;
-        border: none;
-    }
-
-    .k-collapsible-content {
-        /*padding: 0 18px;*/
-        /*max-height: 0;*/
-        overflow: hidden;
-        /*transition: max-height 0.2s ease-out;*/
-    }
-</style>
 
 @code {
 

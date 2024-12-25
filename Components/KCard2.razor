@@ -1,5 +1,5 @@
 ﻿<div @onclick="@OnClick" class="@($"kcard2container{(CssClass==null?"":($" {CssClass}"))}")" @attributes="InputAttributes">
-    <div style="display: flex;align-items: center; margin-bottom: 10px;">
+    <div style="display: flex;align-items: center;">
         @if (!string.IsNullOrEmpty(Title))
         {
             <h3>@Title</h3>
@@ -15,14 +15,6 @@
 
 </div>
 
-<style>
-    .kcard2container {
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        /*background: var(--background-on);*/
-    }
-</style>
 
 @code {
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
