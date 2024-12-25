@@ -1,5 +1,7 @@
-/obj
-/bin
-/.vs
-/.idea
+KLib/obj
+KLib/bin
+KLib.BlazorWebAssembly.Example/obj
+KLib.BlazorWebAssembly.Example/bin
+.vs
+.idea
 *.user

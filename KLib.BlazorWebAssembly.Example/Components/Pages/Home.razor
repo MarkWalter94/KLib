@@ -1,0 +1,16 @@
+﻿@page "/"
+
+@inject NavigationManager Nav
+
+<KButton Content="Base components" OnClick="GoToBaseComponents"></KButton>
+
+
+@code{
+
+
+    private void GoToBaseComponents()
+    {
+        Nav.NavigateTo("/basecomponents");
+    }
+
+}

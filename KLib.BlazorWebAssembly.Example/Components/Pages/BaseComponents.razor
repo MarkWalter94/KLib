@@ -1,0 +1,36 @@
+﻿@page "/basecomponents"
+@using System.ComponentModel.DataAnnotations
+
+<div class="example-container">
+    <GoBack/>
+
+
+    <EditForm Model="Model">
+        <DataAnnotationsValidator/>
+
+        <KTextBox Placeholder="Name" @bind-Text="Model.Name"/>
+        <ValidationMessage For="@(() => Model.Name)"/>
+
+        <KTextBox Placeholder="Email" @bind-Text="Model.Email"/>
+        <ValidationMessage For="@(() => Model.Email)"/>
+
+        <KDatePicker Placeholder="Birth date" @bind-Value="Model.DateOfBirth"/>
+        <ValidationMessage For="@(() => Model.DateOfBirth)"/>
+
+        <KButton ButtonType="KButtonType.Primary" Content="Register" Type="submit" style="margin-top:25px;"/>
+    </EditForm>
+</div>
+
+@code {
+    private readonly EditFormTest Model = new();
+
+    class EditFormTest
+    {
+        [Required] public string Name { get; set; }
+
+        [Required] [EmailAddress] public string Email { get; set; }
+
+        [Required] public DateTime DateOfBirth { get; set; }
+    }
+
+}
