@@ -3,7 +3,7 @@
 @typeparam TValue
 @typeparam TItem
 
-<select class="form-select" aria-label="@AreaLabel" @onchange="OnValueChanged">
+<select class="form-select" aria-label="@AreaLabel" @onchange="OnValueChanged" @attributes="InputAttributes">
     @if (DataSource == null)
     {
         <option value="" selected disabled>Loading...</option>
@@ -34,6 +34,9 @@
 </select>
 
 @code {
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+
     [Parameter] public string AreaLabel { get; set; } = null!;
 
     [Parameter] public string Placeholder { get; set; } = null!;

@@ -9,12 +9,12 @@
 @inject ISubscriber<KThemeChangedMessage> ThemeChangedSubscriber
 
 
-<button @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn {CssClassStr}")
-        onclick="@OnClick" @onclick:stopPropagation="true" disabled="@(Disabled || IsExecuting)">
+<button @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn{(CssClassStr==null?string.Empty:$" {CssClassStr}")}")
+        @onclick="OnClick" @onclick:stopPropagation="true" disabled="@(Disabled || IsExecuting)">
     @if (!string.IsNullOrEmpty(MaterialUIIconCode))
     {
         <span style="@("margin-right: 5px;" + MaterialUIIConStyle)"
-              class="material-symbols">@MaterialUIIconCode</span>
+              class="material-icons">@MaterialUIIconCode</span>
     }
     @Content
     @if (this.IsExecuting)
@@ -25,7 +25,7 @@
 
     @if (ButtonType == KButtonType.GoTo)
     {
-        <span class="material-symbols" style="margin-left: auto;">navigate_next</span>
+        <span class="material-icons" style="margin-left: auto;">navigate_next</span>
     }
 </button>
 
@@ -127,5 +127,4 @@
     {
         _suscriber?.Dispose();
     }
-
 }
