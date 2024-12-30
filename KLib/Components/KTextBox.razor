@@ -1,11 +1,10 @@
-﻿@* @inject IJSRuntime JSRuntime; *@
-<div>
+﻿<div>
     @if (!string.IsNullOrWhiteSpace(Placeholder))
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
     <input id="@Id" @attributes="InputAttributes" type="@InputType" class="ktextbox form-control @CssClass"
-           value="@Text" @oninput="OnInput"/>
+           value="@Text" @onchange="OnChange" @oninput="OnInput" readonly="@Readonly"/>
 
 </div>
 
@@ -13,7 +12,9 @@
     [Parameter] public string? InputType { get; set; } = "text";
     [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
     [Parameter] public string? Placeholder { get; set; }
-
+    [Parameter] public bool Readonly { get; set; }
+    [Parameter] public TextChangedMode TextChangingMode { get; set; } = TextChangedMode.Typing;
+    private string _oldText = string.Empty;
     [Parameter] [EditorRequired] public string Text { get; set; } = null!;
 
     [Parameter] public EventCallback<string> TextChanged { get; set; }
@@ -28,6 +29,11 @@
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    internal void Refresh()
+    {
+        StateHasChanged();
+    }
 
     // private async Task Created()
     // {
@@ -45,8 +51,23 @@
 
     private void OnInput(ChangeEventArgs obj)
     {
+        if (TextChangingMode == TextChangedMode.LostFocus)
+            return;
         Text = obj.Value?.ToString() ?? string.Empty;
         TextChanged.InvokeAsync(Text);
     }
 
+    private void OnChange(ChangeEventArgs obj)
+    {
+        if (TextChangingMode == TextChangedMode.Typing)
+            return;
+        Text = obj.Value?.ToString() ?? string.Empty;
+        TextChanged.InvokeAsync(Text);
+    }
+
+    public enum TextChangedMode
+    {
+        Typing,
+        LostFocus
+    }
 }

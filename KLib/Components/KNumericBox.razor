@@ -1,0 +1,107 @@
+@using System.Globalization
+@typeparam TValue
+
+<KTextBox TextChangingMode="KTextBox.TextChangedMode.LostFocus" @ref="_textBoxObject" Placeholder="@Placeholder"
+          Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged"/>
+
+@code {
+    private KTextBox? _textBoxObject;
+    private string? _text { get; set; }
+    private TValue? _oldValue { get; set; }
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public int? Decimals { get; set; }
+    [Parameter] public string? Format { get; set; }
+    [Parameter] [EditorRequired] public string? Placeholder { get; set; }
+    [Parameter] public string? Currency { get; set; }
+    [Parameter] public bool Readonly { get; set; }
+    [Parameter] public TValue? Min { get; set; }
+    [Parameter] public TValue? Max { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        //Se il valore cambia, lo valido
+        if (!EqualityComparer<TValue>.Default.Equals(Value, _oldValue))
+        {
+            _oldValue = Value;
+            ValidateValue();
+        }
+
+        base.OnParametersSet();
+    }
+
+    private void OnTextChanged(string? newText)
+    {
+        var oldText = _text;
+        {
+            if (!string.IsNullOrEmpty(Currency) && newText?.Contains(Currency) == true)
+                newText = newText.Replace(Currency, string.Empty).Trim();
+        }
+
+        _text = newText;
+        try
+        {
+            var type = typeof(TValue);
+            var method = type.GetMethod("Parse", new[] { typeof(string) });
+            if (method != null)
+            {
+                Value = (TValue)method.Invoke(null, [newText])!;
+                ValueChanged.InvokeAsync(Value);
+                ValidateValue();
+                return;
+            }
+        }
+        catch
+        {
+            // Rollback in case of an error
+            _text = oldText;
+            _textBoxObject?.Refresh();
+        }
+
+        // Rollback if parsing fails
+        _text = oldText;
+        _textBoxObject?.Refresh();
+    }
+
+    private void ValidateValue()
+    {
+        if (Min is IEquatable<TValue> iemin && Max is IEquatable<TValue> iemax)
+        {
+            if (Min != null && !iemin.Equals(iemax))
+            {
+                if (Comparer<TValue>.Default.Compare(Value, Min) < 0)
+                {
+                    Value = Min;
+                    ValueChanged.InvokeAsync(Value);
+                }
+            }
+
+            if (Max != null && !iemax.Equals(iemin))
+            {
+                if (Comparer<TValue>.Default.Compare(Value, Max) > 0)
+                {
+                    Value = Max;
+                    ValueChanged.InvokeAsync(Value);
+                }
+            }
+        }
+        else
+        {
+            throw new NotSupportedException($"Type {typeof(TValue)} is not supported");
+        }
+
+        ConvertValueToText();
+    }
+
+    private void ConvertValueToText()
+    {
+        _text = Format != null && Value is IFormattable formattableValue
+            ? formattableValue.ToString(Format, CultureInfo.CurrentCulture)
+            : Value.ToString()!;
+        if (!string.IsNullOrEmpty(Currency))
+        {
+            _text = $"{_text} {Currency}";
+        }
+    }
+
+}
