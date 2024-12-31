@@ -85,7 +85,7 @@
                 }
             }
         }
-        else
+        else if(Min!=null || Max!=null)
         {
             throw new NotSupportedException($"Type {typeof(TValue)} is not supported");
         }
