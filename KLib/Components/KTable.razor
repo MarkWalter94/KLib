@@ -16,12 +16,13 @@
     </thead>
     <tbody>
     @{
-        if (Items != null)
+        if (_displayItems != null)
         {
             var index = 0;
-            foreach (var item in Items)
+            foreach (var item in _displayItems)
             {
-                <tr id="@GetId(item!.GetHashCode())" @onclick="async (e)=> await OnRowClick((GetId(item!.GetHashCode())),item)"
+                <tr id="@GetId(item!.GetHashCode())"
+                    @onclick="async (e)=> await OnRowClick((GetId(item!.GetHashCode())),item)"
                     @key="item.GetHashCode()" class="@(RowClass?.Invoke(item, index++))">
                     @foreach (var column in columns)
                     {
@@ -35,14 +36,43 @@
 </table>
 
 <script>
-    function selectTableRow(rowId){
+    function selectTableRow(rowId) {
         var tableRow = document.getElementById(rowId);
         tableRow.classList.add("table-active");
     }
 
-    function deselectTableRow(rowId){
+    function deselectTableRow(rowId) {
         var tableRow = document.getElementById(rowId);
         tableRow.classList.remove("table-active");
+    }
+
+    function setColumnOrder(columnId, ascending, removeOnly) {
+        var tableHeader = document.getElementById(columnId);
+        //Prendo l'elemento figlio div
+        var div = tableHeader.children[0];
+        //Se il div conteneva una classe material-icons la rimuovo
+        if (div.children.length > 0) {
+            //Rimuovo la span con la classe material-icons
+            for (var i = 0; i < div.children.length; i++) {
+                if (div.children[i].classList.contains("material-icons")) {
+                    div.removeChild(div.children[i]);
+                    break;
+                }
+            }
+        }
+
+        if (removeOnly) {
+            return;
+        }
+        var span = document.createElement("span");
+        span.classList.add("material-icons");
+        if (ascending) {
+            //Aggiungo una span nel div con la classe material-icons e la freccia in su
+            span.textContent = "arrow_upward";
+        } else {
+            span.textContent = "arrow_downward";
+        }
+        div.appendChild(span);
     }
 </script>
 
@@ -51,6 +81,7 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> TableAttributes { get; set; } = null!;
 
+    private IEnumerable<TRowData>? _items;
     [Parameter] [EditorRequired] public IEnumerable<TRowData>? Items { get; set; }
 
     [Parameter] public TRowData? SelectedItem { get; set; }
@@ -61,11 +92,16 @@
 
     [Parameter] public Func<TRowData, int, string>? RowClass { get; set; }
 
+    [Parameter] public bool AllowColumnOrder { get; set; }
+
     private readonly List<KTableColumn<TRowData>> columns = new();
 
     private readonly Dictionary<int, string> _ids = new();
 
-    private string GetId(int index)
+
+    private List<TRowData>? _displayItems;
+
+    internal string GetId(int index)
     {
         if (!_ids.ContainsKey(index))
         {
@@ -88,15 +124,56 @@
         }
     }
 
+    protected override void OnParametersSet()
+    {
+        if (_items != Items || _displayItems?.Count != Items?.Count())
+        {
+            _items = Items;
+            _displayItems = Items?.ToList();
+        }
+
+        base.OnParametersSet();
+    }
+
     private async Task OnRowClick(string rowId, TRowData item)
     {
         if (this.SelectedItem != null)
         {
             await JSRuntime.InvokeVoidAsync("deselectTableRow", GetId(this.SelectedItem.GetHashCode()));
         }
+
         await JSRuntime.InvokeVoidAsync("selectTableRow", rowId);
         SelectedItem = item;
         await SelectedItemChanged.InvokeAsync(item);
+    }
+
+    internal async Task SortByColumn(KTableColumn<TRowData> column)
+    {
+        if (AllowColumnOrder)
+        {
+            var columnExpr = column._compiledExpression;
+            if (columnExpr == null)
+                throw new InvalidOperationException("Column expression is not yet compiled");
+            column._sortAscending = !column._sortAscending;
+            if (column._sortAscending)
+                _displayItems = _displayItems?.OrderBy(columnExpr).ToList();
+            else
+                _displayItems = _displayItems?.OrderByDescending(columnExpr).ToList();
+            await SetColumnOrderJs(column);
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetColumnOrderJs(KTableColumn<TRowData> column)
+    {
+        foreach (var col in columns)
+        {
+            if (col != column)
+            {
+                await JSRuntime.InvokeVoidAsync("setColumnOrder", GetId(col.GetHashCode()), false, true);
+            }
+        }
+        await JSRuntime.InvokeVoidAsync("setColumnOrder", GetId(column.GetHashCode()), column._sortAscending, false);
     }
 
 }

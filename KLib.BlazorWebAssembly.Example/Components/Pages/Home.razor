@@ -2,8 +2,23 @@
 
 @inject NavigationManager Nav
 
-<KButton Content="Base components" OnClick="GoToBaseComponents"></KButton>
+<div class="example-container example-maindiv">
+    <KButton CssClass="example-goto-button" ButtonType="KButtonType.GoTo" Content="Base components"
+             OnClick="GoToBaseComponents"></KButton>
+    <KButton CssClass="example-goto-button" ButtonType="KButtonType.GoTo" Content="Grid" OnClick="GoToGrid"></KButton>
+</div>
 
+<style>
+    .example-maindiv {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .example-goto-button {
+        width: 400px;
+    }
+</style>
 
 @code{
 
@@ -11,6 +26,11 @@
     private void GoToBaseComponents()
     {
         Nav.NavigateTo("/basecomponents");
+    }
+
+    private void GoToGrid()
+    {
+        Nav.NavigateTo("/grid");
     }
 
 }

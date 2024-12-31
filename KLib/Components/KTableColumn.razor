@@ -6,16 +6,17 @@
 
     [Parameter] [EditorRequired] public string Title { get; set; } = null!;
 
-    [Parameter] [EditorRequired] public Expression<Func<TRowData, object>> Expression { get; set; } = null!;
+    [Parameter] public Expression<Func<TRowData, object>>? Expression { get; set; } = null!;
 
-    [Parameter]
-    public string? Format { get; set; }
+    [Parameter] public string? Format { get; set; }
 
-    [Parameter]
-    public RenderFragment<TRowData>? ChildContent { get; set; }
+    [Parameter] public RenderFragment<TRowData>? ChildContent { get; set; }
 
-    private Func<TRowData, object>? compiledExpression;
-    private Expression? lastCompiledExpression;
+    [Parameter] public bool DisableColumnOrder { get; set; }
+
+    internal bool _sortAscending = true;
+    internal Func<TRowData, object>? _compiledExpression;
+    private Expression? _lastCompiledExpression;
     private RenderFragment? headerTemplate;
     private RenderFragment<TRowData>? cellTemplate;
 
@@ -28,10 +29,10 @@
 
     protected override void OnParametersSet()
     {
-        if (lastCompiledExpression != Expression)
+        if (_lastCompiledExpression != Expression)
         {
-            compiledExpression = Expression?.Compile();
-            lastCompiledExpression = Expression;
+            _compiledExpression = Expression?.Compile();
+            _lastCompiledExpression = Expression;
         }
     }
 
@@ -45,7 +46,22 @@
                 var title = Title;
 
                 builder.OpenElement(0, "th");
-                builder.AddContent(1, title);
+
+                builder.AddAttribute(1, "id", OwnerGrid.GetId(this.GetHashCode()));
+                //Add onclick event to the th element
+                if (OwnerGrid.AllowColumnOrder && !DisableColumnOrder && Expression != null)
+                {
+                    builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, () => OwnerGrid.SortByColumn(this)));
+                    //Imposto l'header come cliccabile
+                    builder.AddAttribute(3, "style", "cursor:pointer");
+                }
+
+                //Aggiungo una div dentro il content dell'header
+                builder.OpenElement(4, "div");
+                //Nella div metto il titolo
+                builder.AddContent(5, title);
+                builder.CloseElement();
+
                 builder.CloseElement();
             });
         }
@@ -58,9 +74,9 @@
             return cellTemplate ??= (rowData => builder =>
             {
                 builder.OpenElement(0, "td");
-                if (compiledExpression != null)
+                if (_compiledExpression != null)
                 {
-                    var value = compiledExpression(rowData);
+                    var value = _compiledExpression(rowData);
                     var formattedValue = string.IsNullOrEmpty(Format) ? value?.ToString() : string.Format("{0:" + Format + "}", value);
                     builder.AddContent(1, formattedValue);
                 }
@@ -85,4 +101,5 @@
             _ => throw new NotSupportedException("Expression of type '" + expression.GetType().ToString() + "' is not supported")
         };
     }
+
 }

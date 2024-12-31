@@ -1,0 +1,45 @@
+﻿@page "/grid"
+
+<div class="example-container">
+    <GoBack/>
+
+    <KTable Items="TableData" AllowColumnOrder="true">
+        <KTableColumn Title="Img">
+            <span class="material-icons">
+                @context.MaterialIconName
+            </span>
+        </KTableColumn>
+        <KTableColumn Expression="dto => dto.Description" Title="Description"/>
+        <KTableColumn Expression="dto => dto.Value" Format="c" Title="Value"/>
+        <KTableColumn Expression="dto => dto.Currency" Title="Currency"/>
+    </KTable>
+
+    <KButton ButtonType="KButtonType.Primary" Content="Add row" OnClick="AddRow"></KButton>
+</div>
+@code {
+
+    private List<TableDto> TableData { get; set; } = new()
+    {
+        new TableDto { Description = "First", Value = 100, Currency = "USD", MaterialIconName ="toggle_on" },
+        new TableDto { Description = "Second", Value = 200, Currency = "USD", MaterialIconName ="cancel" },
+        new TableDto { Description = "Third", Value = 300.3, Currency = "USD", MaterialIconName ="add_box" },
+        new TableDto { Description = "Fourth", Value = 400, Currency = "USD" , MaterialIconName ="undo" },
+        new TableDto { Description = "Fifth", Value = 500.44, Currency = "EUR" , MaterialIconName ="clear_all" },
+    };
+
+    private void AddRow()
+    {
+        TableData.Add(new TableDto { Description = "New", Value = this.TableData.Select(x=>x.Value).Max()+50.33, Currency = "USD" });
+    }
+
+
+    class TableDto
+    {
+        public string Description { get; set; }
+        public double Value { get; set; }
+        public string Currency { get; set; }
+
+        public string MaterialIconName { get; set; }
+    }
+
+}
