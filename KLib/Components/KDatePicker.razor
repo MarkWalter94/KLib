@@ -1,34 +1,104 @@
 ﻿@using System.Linq.Expressions
+@using KLib.Options
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Options
 
 @typeparam TValue
+
+@inject IOptions<KLibOptions> KLibOptions
 <div>
     @if (!string.IsNullOrWhiteSpace(Placeholder))
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
-    <InputDate id="@Id" class="form-control" TValue="TValue" Type="Type" @attributes="InputAttributes" Value="Value" ValueChanged="ValueChanged" ValueExpression="ValueExpression"/>
+    <InputDate id="@Id" class="form-control" TValue="TValue" Type="Type" @attributes="InputAttributes"
+               Value="_localValue" ValueChanged="OnValueChanged" ValueExpression="ValueExpression"/>
 </div>
 
 @code {
-    [Parameter]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? InputAttributes { get; set; }
 
-    [Parameter]
-    public TValue Value { get; set; }
+    private TValue _oldValue;
+    [Parameter] public TValue Value { get; set; }
 
-    [Parameter]
-    public string? Placeholder { get; set; }
+    private TValue _localValue { get; set; }
 
-    [Parameter]
-    public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
 
-    [Parameter]
-    public Expression<Func<TValue>>? ValueExpression { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
 
-    [Parameter]
-    public InputDateType Type { get; set; }
+    [Parameter] public Expression<Func<TValue>>? ValueExpression { get; set; }
+
+    [Parameter] public InputDateType Type { get; set; }
+
+    [Parameter] public bool ConvertToUTC { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.ConvertToUTC = KLibOptions.Value.ConvertDateTimesToUtc;
+        base.OnInitialized();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (ConvertToUTC)
+        {
+            if (!EqualityComparer<TValue>.Default.Equals(Value, _oldValue))
+            {
+                if (Value is DateTime dateTime)
+                {
+                    if (Type == InputDateType.Date || Type == InputDateType.Month)
+                        _localValue = (TValue)(object)new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Local);
+                    else
+                        _localValue = (TValue)(object)dateTime.ToLocalTime();
+                }
+                else if (Value is DateOnly dateOnly)
+                {
+                    _localValue = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Local);
+                }
+                else
+                {
+                    throw new InvalidOperationException("The value must be a DateTime to be converted to UTC");
+                }
+
+                _oldValue = Value;
+            }
+        }
+
+        base.OnParametersSet();
+    }
+
+    private void OnValueChanged(TValue newValue)
+    {
+        _localValue = newValue;
+        //Convert always the value to UTC
+        if (!ConvertToUTC)
+        {
+            Value = newValue;
+        }
+        else
+        {
+            if (newValue is DateTime dateTime)
+            {
+                if (Type == InputDateType.Date || Type == InputDateType.Month)
+                    Value = (TValue)(object)new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, 0, 0, 0, DateTimeKind.Utc);
+                else
+                    Value = (TValue)(object)dateTime.ToUniversalTime();
+            }
+            else if (newValue is DateOnly dateOnly)
+            {
+                Value = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Utc);
+            }
+            else
+            {
+                throw new InvalidOperationException("The value must be a DateTime to be converted to UTC");
+            }
+        }
+
+        ValueChanged.InvokeAsync(Value);
+    }
+
 }
