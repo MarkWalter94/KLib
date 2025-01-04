@@ -9,7 +9,7 @@
 @inject ISubscriber<KThemeChangedMessage> ThemeChangedSubscriber
 
 
-<button @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn{(CssClassStr==null?string.Empty:$" {CssClassStr}")}")
+<button @ref="_innerButton" @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn{(CssClassStr==null?string.Empty:$" {CssClassStr}")}")
         @onclick="OnClick" @onclick:stopPropagation="true" disabled="@(Disabled || IsExecuting)">
     @if (!string.IsNullOrEmpty(MaterialUIIconCode))
     {
@@ -54,6 +54,8 @@
     public Dictionary<string, object>? InputAttributes { get; set; }
 
     private bool _isExecuting;
+
+    private ElementReference _innerButton;
 
     [Parameter]
     public bool IsExecuting
@@ -121,6 +123,11 @@
 
             default: throw new NotImplementedException();
         }
+    }
+
+    public ElementReference GetInnerButtonRef()
+    {
+        return _innerButton;
     }
 
     public void Dispose()
