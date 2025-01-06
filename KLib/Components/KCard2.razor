@@ -1,5 +1,13 @@
-﻿<div @onclick="@OnClick" class="@($"kcard2container{(CssClass==null?"":($" {CssClass}"))}")" @attributes="InputAttributes">
+﻿<div @onclick="@OnClick" class="@($"kcard2container{(CssClass == null ? "" : ($" {CssClass}"))}")"
+     @attributes="InputAttributes">
     <div style="display: flex;align-items: center;">
+        @if (!string.IsNullOrEmpty(MaterialUIIconCode))
+        {
+            <span
+                style=@("margin-right: 5px;" + (string.IsNullOrWhiteSpace(MaterialUIIconColor) ? string.Empty : ($"color: {MaterialUIIconColor}")))
+                class="material-icons">@MaterialUIIconCode</span>
+        }
+
         @if (!string.IsNullOrEmpty(Title))
         {
             <h3>@Title</h3>
@@ -25,6 +33,12 @@
     [Parameter] public string? CssClass { get; set; }
 
     [Parameter] public string? Title { get; set; }
+
+    [Parameter] public string? MaterialUIIconCode { get; set; }
+
+    [Parameter] public string? MaterialUIIconColor { get; set; }
+
     [Parameter] public RenderFragment? HeaderContent { get; set; }
+
     [EditorRequired] [Parameter] public RenderFragment ChildContent { get; set; } = null!;
 }
