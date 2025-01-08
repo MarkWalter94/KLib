@@ -2,7 +2,7 @@
 @typeparam TValue
 
 <KTextBox TextChangingMode="KTextBox.TextChangedMode.LostFocus" @ref="_textBoxObject" Placeholder="@Placeholder"
-          Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged"/>
+          Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged" TextExpression="()=>_text"/>
 
 @code {
     private KTextBox? _textBoxObject;
