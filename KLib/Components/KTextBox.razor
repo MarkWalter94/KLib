@@ -1,10 +1,13 @@
-﻿<div>
+﻿@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+<div>
     @if (!string.IsNullOrWhiteSpace(Placeholder))
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
-    <input id="@Id" @attributes="InputAttributes" type="@InputType" class="ktextbox form-control @CssClass"
-           value="@Text" @onchange="OnChange" @oninput="OnInput" readonly="@Readonly"/>
+    <InputText @attributes="InputAttributes" type="@InputType" class=@($"ktextbox form-control {CssClass}")
+               Value="@Text" ValueChanged="@((string? s)=>OnChange(s))" ValueExpression="@TextExpression" @oninput="OnInput"
+               readonly="@Readonly"/>
 
 </div>
 
@@ -18,7 +21,7 @@
     [Parameter] [EditorRequired] public string Text { get; set; } = null!;
 
     [Parameter] public EventCallback<string> TextChanged { get; set; }
-
+    [Parameter] public Expression<Func<string>>? TextExpression { get; set; }
     [Parameter] public bool ShowClearButton { get; set; }
 
     [Parameter] public string? CssClass { get; set; }
@@ -57,11 +60,11 @@
         TextChanged.InvokeAsync(Text);
     }
 
-    private void OnChange(ChangeEventArgs obj)
+    private void OnChange(string? newVal)
     {
         if (TextChangingMode == TextChangedMode.Typing)
             return;
-        Text = obj.Value?.ToString() ?? string.Empty;
+        Text = newVal ?? string.Empty;
         TextChanged.InvokeAsync(Text);
     }
 
@@ -70,4 +73,5 @@
         Typing,
         LostFocus
     }
+
 }
