@@ -26,6 +26,7 @@
     display: inline-flex;
     align-items: center;
     height: 40px;
+    white-space: nowrap;
 }
 
 .kcard2container {
