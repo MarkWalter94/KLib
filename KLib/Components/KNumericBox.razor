@@ -2,7 +2,7 @@
 @typeparam TValue
 
 <KTextBox TextChangingMode="KTextBox.TextChangedMode.LostFocus" @ref="_textBoxObject" Placeholder="@Placeholder"
-          Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged"/>
+          Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged" TextExpression="()=>_text"/>
 
 @code {
     private KTextBox? _textBoxObject;
@@ -41,11 +41,17 @@
         _text = newText;
         try
         {
-            var type = typeof(TValue);
+            var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
             var method = type.GetMethod("Parse", new[] { typeof(string) });
+            var parameters = new List<object> { newText };
+            if (method == null)
+            {
+                method = type.GetMethod("Parse", new[] { typeof(string), typeof(IFormatProvider) });
+                parameters.Add(CultureInfo.CurrentCulture);
+            }
             if (method != null)
             {
-                Value = (TValue)method.Invoke(null, [newText])!;
+                Value = (TValue)method.Invoke(null, parameters.ToArray())!;
                 ValueChanged.InvokeAsync(Value);
                 ValidateValue();
                 return;
