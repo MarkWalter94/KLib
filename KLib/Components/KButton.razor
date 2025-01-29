@@ -9,12 +9,20 @@
 @inject ISubscriber<KThemeChangedMessage> ThemeChangedSubscriber
 
 
-<button @ref="_innerButton" @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn{(CssClassStr==null?string.Empty:$" {CssClassStr}")}")
+<button @ref="_innerButton" @attributes="InputAttributes" type="@(Type ?? "button")" class=@($"kbutton btn{(CssClassStr==null?string.Empty:$" {CssClassStr}")} {(CircularButton?"k-btn-circle":"")}")
         @onclick="OnClick" @onclick:stopPropagation="true" disabled="@(Disabled || IsExecuting)">
     @if (!string.IsNullOrEmpty(MaterialUIIconCode))
     {
-        <span style="@("margin-right: 5px;" + MaterialUIIConStyle)"
-              class="material-icons">@MaterialUIIconCode</span>
+        @if (CircularButton)
+        {
+            <span style="@("width: 100%;" + MaterialUIIConStyle)"
+                  class="material-icons">@MaterialUIIconCode</span>
+        }
+        else
+        {
+            <span style="@("margin-right: 5px;" + MaterialUIIConStyle)"
+                  class="material-icons">@MaterialUIIconCode</span>
+        }
     }
     @Content
     @if (this.IsExecuting)
@@ -49,6 +57,8 @@
     [Parameter] public KButtonType? ButtonType { get; set; }
 
     [Parameter] public string? Type { get; set; }
+
+    [Parameter] public bool CircularButton { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? InputAttributes { get; set; }
