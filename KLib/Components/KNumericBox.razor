@@ -1,7 +1,7 @@
 @using System.Globalization
 @typeparam TValue
 
-<KTextBox TextChangingMode="KTextBox.TextChangedMode.LostFocus" @ref="_textBoxObject" Placeholder="@Placeholder"
+<KTextBox CssClass="@CssClass" TextChangingMode="KTextBox.TextChangedMode.LostFocus" @ref="_textBoxObject" Placeholder="@Placeholder"
           Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged" TextExpression="()=>_text"/>
 
 @code {
@@ -17,6 +17,7 @@
     [Parameter] public bool Readonly { get; set; }
     [Parameter] public TValue? Min { get; set; }
     [Parameter] public TValue? Max { get; set; }
+    [Parameter] public string? CssClass { get; set; }
 
     protected override void OnParametersSet()
     {
