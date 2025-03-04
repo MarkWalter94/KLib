@@ -32,7 +32,6 @@
 .kcard2container {
     border-radius: 12px;
     padding: 15px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     /*background: var(--background-on);*/
 }
 
