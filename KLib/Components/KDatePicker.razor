@@ -57,7 +57,10 @@
                 }
                 else if (Value is DateOnly dateOnly)
                 {
-                    _localValue = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Local);
+                    if(typeof(TValue)==typeof(DateTime) || typeof(TValue)==typeof(DateTime?))
+                        _localValue = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Local);
+                    else if(typeof(TValue)==typeof(DateOnly) || typeof(TValue)==typeof(DateOnly?))
+                        _localValue = (TValue)(object)dateOnly;
                 }
                 else
                 {
@@ -90,7 +93,14 @@
             }
             else if (newValue is DateOnly dateOnly)
             {
-                Value = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Utc);
+                if (typeof(TValue) == typeof(DateTime) || typeof(TValue) == typeof(DateTime?))
+                {
+                    Value = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Utc);
+                }
+                else if (typeof(TValue) == typeof(DateOnly) || typeof(TValue) == typeof(DateOnly?))
+                {
+                    Value = (TValue)(object)newValue;
+                }
             }
             else
             {
