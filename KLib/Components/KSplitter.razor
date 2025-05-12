@@ -1,7 +1,7 @@
 ﻿@using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 
-<div class="k-splitter" style="flex-direction: @(Orientation == KSplitterOrientation.Horizontal ? "row" : "column");">
+<div @attributes="InputAttributes" class="k-splitter">
     <div id="@FirstId" class="k-splitter-first">
         @FirstChild
     </div>
@@ -11,9 +11,12 @@
 </div>
 
 <style>
+    .k-splitter {
+        flex-direction: @(Orientation == KSplitterOrientation.Horizontal ? "row" : "column");
+    }
 
     .gutter {
-        /*background-color: rgb(var(--bs-tertiary-bg-rgb)) !important;*/
+        background-color: rgb(var(--bs-tertiary-bg-rgb)) !important;
         background-repeat: no-repeat;
         background-position: 50%;
     }
@@ -22,17 +25,28 @@
         background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
         cursor: @(Orientation == KSplitterOrientation.Horizontal ? "ew-resize" : "ns-resize");
     }
+    
 </style>
 
 <script>
-    function initSplit(firstId, secondId){
-        Split(["#" + firstId, "#" + secondId], {gutterSize: 3});
+    function initSplit(firstId, secondId, firstWidthPercent, secondWidthPercent) {
+        Split(["#" + firstId, "#" + secondId], {
+            gutterSize: 3,
+            sizes: [firstWidthPercent, secondWidthPercent]
+        });
     }
 </script>
 
 @code {
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+
     [Parameter] [EditorRequired] public RenderFragment FirstChild { get; set; } = null!;
     [Parameter] [EditorRequired] public RenderFragment SecondChild { get; set; } = null!;
+
+    [Parameter] public int FirstChildWidthPercent { get; set; } = 50;
+    [Parameter] public int SecondChildWidthPercent { get; set; } = 50;
 
     [Parameter] public string FirstId { get; set; } = "a" + Guid.NewGuid().ToString();
     [Parameter] public string SecondId { get; set; } = "a" + Guid.NewGuid().ToString();
@@ -43,7 +57,7 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("initSplit", FirstId, SecondId);
+            await JSRuntime.InvokeVoidAsync("initSplit", FirstId, SecondId, FirstChildWidthPercent, SecondChildWidthPercent);
         }
     }
 
