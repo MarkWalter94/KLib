@@ -25,7 +25,7 @@
         background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
         cursor: @(Orientation == KSplitterOrientation.Horizontal ? "ew-resize" : "ns-resize");
     }
-    
+
 </style>
 
 <script>
@@ -45,8 +45,8 @@
     [Parameter] [EditorRequired] public RenderFragment FirstChild { get; set; } = null!;
     [Parameter] [EditorRequired] public RenderFragment SecondChild { get; set; } = null!;
 
-    [Parameter] public int FirstChildWidthPercent { get; set; } = 50;
-    [Parameter] public int SecondChildWidthPercent { get; set; } = 50;
+    [Parameter] public int? FirstChildWidthPercent { get; set; }
+    [Parameter] public int? SecondChildWidthPercent { get; set; }
 
     [Parameter] public string FirstId { get; set; } = "a" + Guid.NewGuid().ToString();
     [Parameter] public string SecondId { get; set; } = "a" + Guid.NewGuid().ToString();
@@ -57,7 +57,30 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("initSplit", FirstId, SecondId, FirstChildWidthPercent, SecondChildWidthPercent);
+            int firstWidth = 0;
+            int secondWidth = 0;
+            if (FirstChildWidthPercent.HasValue && SecondChildWidthPercent.HasValue)
+            {
+                firstWidth = FirstChildWidthPercent.Value;
+                secondWidth = SecondChildWidthPercent.Value;
+            }
+            else if (FirstChildWidthPercent.HasValue)
+            {
+                firstWidth = FirstChildWidthPercent.Value;
+                secondWidth = 100 - firstWidth;
+            }
+            else if (SecondChildWidthPercent.HasValue)
+            {
+                secondWidth = SecondChildWidthPercent.Value;
+                firstWidth = 100 - secondWidth;
+            }
+            else
+            {
+                firstWidth = 50;
+                secondWidth = 50;
+            }
+
+            await JSRuntime.InvokeVoidAsync("initSplit", FirstId, SecondId, firstWidth, secondWidth);
         }
     }
 
