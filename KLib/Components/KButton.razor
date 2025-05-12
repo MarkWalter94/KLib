@@ -20,7 +20,12 @@
         }
         else
         {
-            <span style="@("margin-right: 5px;" + MaterialUIIConStyle)"
+            var style = MaterialUIIConStyle;
+            @if (this.Content != null)
+            {
+                style += "margin-right: 5px;";
+            }
+            <span style="@style"
                   class="material-icons">@MaterialUIIconCode</span>
         }
     }
