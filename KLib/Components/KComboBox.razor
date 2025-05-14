@@ -1,9 +1,13 @@
 ﻿@using System.ComponentModel
+@using Microsoft.JSInterop
+
+@inject IJSRuntime JSRuntime
 
 @typeparam TValue
 @typeparam TItem
 
-<select disabled="@Disabled" class="form-select" aria-label="@AreaLabel" @onchange="OnValueChanged" @attributes="InputAttributes">
+<select id="@Id" disabled="@Disabled" class="form-select placeholder-active" aria-label="@AreaLabel"
+        @onchange="OnValueChanged" @attributes="InputAttributes">
     @if (DataSource == null)
     {
         <option value="" selected disabled>Loading...</option>
@@ -32,8 +36,25 @@
         }
     }
 </select>
+<script>
+    function updateSelectClass(selectElementId, isPlaceholderActive) {
+        let selectElement = document.getElementById(selectElementId);
+        if (isPlaceholderActive) {
+            selectElement.classList.add("placeholder-active");
+        } else {
+            selectElement.classList.remove("placeholder-active");
+        }
+    }
+</script>
+<style>
+    .placeholder-active {
+        color: #6c757d;
+    }
+</style>
 
 @code {
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
+
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object>? InputAttributes { get; set; }
 
@@ -52,6 +73,27 @@
     [Parameter] public string? DisplayField { get; set; }
 
     [Parameter] public bool Disabled { get; set; }
+
+    private ElementReference _selectElement;
+
+    private TValue? _lastValue;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if ((_lastValue != null && Value == null) || (_lastValue == null && Value != null) || (_lastValue != null && _lastValue.Equals(Value)))
+        {
+            _lastValue = Value;
+            await UpdatePlaceholderStyle();
+        }
+
+        await base.OnParametersSetAsync();
+    }
+
+    private async Task UpdatePlaceholderStyle()
+    {
+        var isPlaceholderActive = string.IsNullOrWhiteSpace(Value?.ToString()) || EqualityComparer<TValue>.Default.Equals(Value, default(TValue));
+        await JSRuntime.InvokeVoidAsync("updateSelectClass", this.Id, isPlaceholderActive);
+    }
 
     private TValue GetValue(TItem item)
     {
@@ -78,9 +120,10 @@
                     return default;
                 obj = obj.GetType().GetProperty(prop)!.GetValue(obj);
             }
+
             if (obj == null)
                 return default;
-            
+
             return (string?)obj;
         }
         else
@@ -97,14 +140,15 @@
         if (newValue == null || string.IsNullOrEmpty(newValue.ToString()))
         {
             Value = default;
-            await ValueChanged.InvokeAsync(Value);
-            return;
+        }
+        else
+        {
+            var typeConverter = TypeDescriptor.GetConverter(typeof(TValue));
+            Value = (TValue)typeConverter.ConvertFromString(newValue.ToString()!)!;
         }
 
-        var typeConverter = TypeDescriptor.GetConverter(typeof(TValue));
-
-        Value = (TValue)typeConverter.ConvertFromString(newValue.ToString()!)!;
         await ValueChanged.InvokeAsync(Value);
+        await UpdatePlaceholderStyle();
     }
 
 }
