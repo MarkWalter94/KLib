@@ -78,9 +78,17 @@
 
     private TValue? _lastValue;
 
+    private bool _rendered = false;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        _rendered = true;
+    }
+
     protected override async Task OnParametersSetAsync()
     {
-        if ((_lastValue != null && Value == null) || (_lastValue == null && Value != null) || (_lastValue != null && _lastValue.Equals(Value)))
+        if (_rendered && ((_lastValue != null && Value == null) || (_lastValue == null && Value != null) || (_lastValue != null && !_lastValue.Equals(Value))))
         {
             _lastValue = Value;
             await UpdatePlaceholderStyle();
