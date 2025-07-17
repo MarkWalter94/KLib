@@ -1,7 +1,7 @@
 ﻿<div @attributes="InputAttributes" class="form-check @(IsSwitch?"form-switch":"") form-switch-md">
     @if (!string.IsNullOrWhiteSpace(Placeholder))
     {
-        <label class="form-check-label" for="@SwitchId">@Placeholder</label>
+        <label style="@(IsSwitch?"margin-left:10px;":string.Empty)" class="form-check-label" for="@SwitchId">@Placeholder</label>
     }
     <input class="form-check-input" type="checkbox" role="@(IsSwitch ? "switch" : null)" id="@SwitchId" disabled="@Disabled" @onchange="@OnChange" @onclick:stopPropagation="true" checked="@Checked">
 </div>
