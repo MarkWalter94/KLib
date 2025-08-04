@@ -6,7 +6,7 @@
 @typeparam TValue
 @typeparam TItem
 
-<select id="@Id" disabled="@Disabled" class="form-select placeholder-active" aria-label="@AreaLabel"
+<select id="@Id" disabled="@Disabled" class="@("form-select placeholder-active" + (string.IsNullOrEmpty(CssClass)?string.Empty:" ") + CssClass)" aria-label="@AreaLabel"
         @onchange="OnValueChanged" @attributes="InputAttributes">
     @if (DataSource == null)
     {
@@ -73,6 +73,8 @@
     [Parameter] public string? DisplayField { get; set; }
 
     [Parameter] public bool Disabled { get; set; }
+    
+    [Parameter] public string? CssClass { get; set; }
 
     private ElementReference _selectElement;
 

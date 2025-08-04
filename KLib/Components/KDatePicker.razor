@@ -11,7 +11,7 @@
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
-    <InputDate id="@Id" class="form-control" TValue="TValue" Type="Type" @attributes="InputAttributes"
+    <InputDate id="@Id" class="@("form-control" + (string.IsNullOrEmpty(CssClass)?string.Empty:" ") + CssClass)" TValue="TValue" Type="Type" @attributes="InputAttributes"
                Value="_localValue" ValueChanged="OnValueChanged" ValueExpression="ValueExpression"/>
 </div>
 
@@ -35,6 +35,8 @@
     [Parameter] public InputDateType Type { get; set; }
 
     [Parameter] public bool ConvertToUTC { get; set; }
+    
+    [Parameter] public string? CssClass { get; set; }
 
     protected override void OnInitialized()
     {
