@@ -1,4 +1,5 @@
 ﻿@using System.ComponentModel
+@using System.Diagnostics
 @using Microsoft.JSInterop
 
 @inject IJSRuntime JSRuntime
@@ -6,7 +7,9 @@
 @typeparam TValue
 @typeparam TItem
 
-<select id="@Id" disabled="@Disabled" class="@("form-select placeholder-active" + (string.IsNullOrEmpty(CssClass)?string.Empty:" ") + CssClass)" aria-label="@AreaLabel"
+<select id="@Id" disabled="@Disabled"
+        class="@("form-select placeholder-active" + (string.IsNullOrEmpty(CssClass) ? string.Empty : " ") + CssClass)"
+        aria-label="@AreaLabel"
         @onchange="OnValueChanged" @attributes="InputAttributes">
     @if (DataSource == null)
     {
@@ -18,7 +21,7 @@
         {
             <option value="" selected>@Placeholder</option>
         }
-        else if(!string.IsNullOrWhiteSpace(Placeholder))
+        else if (!string.IsNullOrWhiteSpace(Placeholder))
         {
             <option value="">@Placeholder</option>
         }
@@ -67,8 +70,10 @@
 
     [Parameter] public string? DisplayField { get; set; }
 
+    [Parameter] public Func<TItem, string>? DisplayFunc { get; set; }
+
     [Parameter] public bool Disabled { get; set; }
-    
+
     [Parameter] public string? CssClass { get; set; }
 
     private ElementReference _selectElement;
@@ -112,8 +117,13 @@
         if (item == null)
             return default;
 
-        if (DisplayField == null)
+        Debug.Assert(!(DisplayField != null && DisplayFunc != null), "Cannot set both DisplayField and DisplayFunc");
+
+        if (DisplayField == null && DisplayFunc == null)
             return item.ToString();
+
+        if (DisplayFunc != null)
+            return DisplayFunc(item);
 
         var splitted = DisplayField.Split(".");
         if (splitted.Length > 1)
