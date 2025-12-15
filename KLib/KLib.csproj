@@ -4,8 +4,19 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>10.0.1</Version>
+        <Title>KLib</Title>
+        <Authors>Marco Ortali</Authors>
+        <Description>Simple components library for blazor.</Description>
+        <PackageProjectUrl>https://github.com/MarkWalter94/KLib</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MarkWalter94/KLib</RepositoryUrl>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="readme.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
     <ItemGroup>
         <SupportedPlatform Include="browser"/>
