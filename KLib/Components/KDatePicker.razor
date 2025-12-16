@@ -11,7 +11,8 @@
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
-    <InputDate id="@Id" class="@("form-control" + (string.IsNullOrEmpty(CssClass)?string.Empty:" ") + CssClass)" TValue="TValue" Type="Type" @attributes="InputAttributes"
+    <InputDate id="@Id" class="@("form-control" + (string.IsNullOrEmpty(CssClass) ? string.Empty : " ") + CssClass)"
+               TValue="TValue" Type="Type" @attributes="InputAttributes"
                Value="_localValue" ValueChanged="OnValueChanged" ValueExpression="ValueExpression"/>
 </div>
 
@@ -35,12 +36,14 @@
     [Parameter] public InputDateType Type { get; set; }
 
     [Parameter] public bool ConvertToUTC { get; set; }
-    
+
     [Parameter] public string? CssClass { get; set; }
 
     protected override void OnInitialized()
     {
         this.ConvertToUTC = KLibOptions.Value.ConvertDateTimesToUtc;
+        if (this.Type == InputDateType.Time)
+            this.ConvertToUTC = false;
         base.OnInitialized();
     }
 
@@ -59,9 +62,9 @@
                 }
                 else if (Value is DateOnly dateOnly)
                 {
-                    if(typeof(TValue)==typeof(DateTime) || typeof(TValue)==typeof(DateTime?))
+                    if (typeof(TValue) == typeof(DateTime) || typeof(TValue) == typeof(DateTime?))
                         _localValue = (TValue)(object)new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day, 0, 0, 0, DateTimeKind.Local);
-                    else if(typeof(TValue)==typeof(DateOnly) || typeof(TValue)==typeof(DateOnly?))
+                    else if (typeof(TValue) == typeof(DateOnly) || typeof(TValue) == typeof(DateOnly?))
                         _localValue = (TValue)(object)dateOnly;
                 }
                 else
