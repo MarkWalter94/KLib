@@ -10,7 +10,7 @@ In the _Imports.razor file add the following line:
 
 In the index.html file (or in the App.razor depending by the project type), add the following line in the ```<head>``` section:
 ```html
-<link id="klibcss" href="_content/KLib/klib.css" rel="stylesheet" />
+<link id="klibcss" href="_content/KLib.Blazor/klib.css" rel="stylesheet" />
 ```
 
 and, if you don't have it already, add the bootstrap library (v5/5.3) following the instructions in the [Bootstrap documentation](https://getbootstrap.com/docs/5.3/getting-started/introduction/).
@@ -18,7 +18,7 @@ N.B.: Use the bootstrap package with popper, orelse integrate it.
 
 If you use the KSplitter component, you need to add the https://split.js.org/#/ with the following line in the ```<body>``` section:
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.2/split.min.js"></script>
 ```
 
 Complete example:
