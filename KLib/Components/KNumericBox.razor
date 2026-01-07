@@ -1,7 +1,8 @@
 @using System.Globalization
 @typeparam TValue
 
-<KTextBox CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus" @ref="_textBoxObject" Placeholder="@Placeholder"
+<KTextBox CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus"
+          @ref="_textBoxObject" Placeholder="@Placeholder"
           Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged" TextExpression="()=>_text"/>
 
 @code {
@@ -18,7 +19,7 @@
     [Parameter] public TValue? Min { get; set; }
     [Parameter] public TValue? Max { get; set; }
     [Parameter] public string? CssClass { get; set; }
-    [Parameter]public string InputType { get; set; } = "number";
+    [Parameter] public string InputType { get; set; } = "number";
 
     protected override void OnParametersSet()
     {
@@ -35,12 +36,19 @@
     private void OnTextChanged(string? newText)
     {
         var oldText = _text;
-        {
-            if (!string.IsNullOrEmpty(Currency) && newText?.Contains(Currency) == true)
-                newText = newText.Replace(Currency, string.Empty).Trim();
-        }
+        if (!string.IsNullOrEmpty(Currency) && newText?.Contains(Currency) == true)
+            newText = newText.Replace(Currency, string.Empty).Trim();
 
         _text = newText;
+        
+        if(string.IsNullOrEmpty(newText))
+        {
+            //Gestisco il caso di valore nullo
+            Value = default;
+            ValueChanged.InvokeAsync(Value);
+            return;
+        }
+        
         try
         {
             var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
@@ -51,6 +59,7 @@
                 method = type.GetMethod("Parse", new[] { typeof(string), typeof(IFormatProvider) });
                 parameters.Add(CultureInfo.CurrentCulture);
             }
+
             if (method != null)
             {
                 Value = (TValue)method.Invoke(null, parameters.ToArray())!;
@@ -93,7 +102,7 @@
                 }
             }
         }
-        else if(Min!=null || Max!=null)
+        else if (Min != null || Max != null)
         {
             throw new NotSupportedException($"Type {typeof(TValue)} is not supported");
         }
