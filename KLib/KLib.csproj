@@ -4,8 +4,21 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>10.0.1</Version>
+        <Title>KLib Blazor</Title>
+        <Authors>Marco Ortali</Authors>
+        <Description>Simple components library for blazor.</Description>
+        <PackageProjectUrl>https://github.com/MarkWalter94/KLib</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/MarkWalter94/KLib</RepositoryUrl>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageId>KLib.Blazor</PackageId>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Include="readme.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
     <ItemGroup>
         <SupportedPlatform Include="browser"/>
@@ -13,7 +26,7 @@
 
     <ItemGroup>
         <PackageReference Include="MessagePipe" Version="1.8.1" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
     </ItemGroup>
 
 </Project>

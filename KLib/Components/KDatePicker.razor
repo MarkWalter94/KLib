@@ -1,4 +1,5 @@
-﻿@using System.Linq.Expressions
+﻿@using System.Globalization
+@using System.Linq.Expressions
 @using KLib.Options
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.Extensions.Options
@@ -11,9 +12,20 @@
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
-    <InputDate id="@Id" class="@("form-control" + (string.IsNullOrEmpty(CssClass) ? string.Empty : " ") + CssClass)"
-               TValue="TValue" Type="Type" @attributes="InputAttributes"
-               Value="_localValue" ValueChanged="OnValueChanged" ValueExpression="ValueExpression"/>
+    @if (Type != InputDateType.Time)
+    {
+        <InputDate id="@Id" class="@("form-control" + (string.IsNullOrEmpty(CssClass) ? string.Empty : " ") + CssClass)"
+                   TValue="TValue" Type="Type" @attributes="InputAttributes"
+                   Value="_localValue" ValueChanged="OnValueChanged" ValueExpression="ValueExpression"/>
+    }
+    else
+    {
+        <input type="time"
+               class="@("form-control" + (string.IsNullOrEmpty(CssClass) ? string.Empty : " ") + CssClass)"
+               value="@CurrentValueAsString"
+               @oninput="OnTimeInput"
+               @attributes="InputAttributes"/>
+    }
 </div>
 
 @code {
@@ -39,6 +51,8 @@
 
     [Parameter] public string? CssClass { get; set; }
 
+    private string? CurrentValueAsString { get; set; }
+
     protected override void OnInitialized()
     {
         this.ConvertToUTC = KLibOptions.Value.ConvertDateTimesToUtc;
@@ -49,7 +63,7 @@
 
     protected override void OnParametersSet()
     {
-        if (ConvertToUTC)
+        if (ConvertToUTC && Type != InputDateType.Time)
         {
             if (!EqualityComparer<TValue>.Default.Equals(Value, _oldValue))
             {
@@ -74,6 +88,11 @@
 
                 _oldValue = Value;
             }
+        }
+
+        if (Type == InputDateType.Time && Value is TimeOnly time)
+        { 
+            CurrentValueAsString = time.ToString("HH:mm", CultureInfo.InvariantCulture);
         }
 
         base.OnParametersSet();
@@ -114,6 +133,29 @@
         }
 
         ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task OnTimeInput(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        CurrentValueAsString = value;
+
+        if (TimeOnly.TryParseExact(value, "HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        {
+            _localValue = (TValue)(object)time;
+            Value = _localValue;
+            await ValueChanged.InvokeAsync(Value);
+        }
+        else if (TimeOnly.TryParseExact(value, "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out time))
+        {
+            _localValue = (TValue)(object)time;
+            Value = _localValue;
+            await ValueChanged.InvokeAsync(Value);
+        }
+        else
+        {
+            //Invalid time format
+        }
     }
 
 }
