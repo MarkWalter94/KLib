@@ -1,11 +1,13 @@
 @using System.Globalization
 @typeparam TValue
 
-<KTextBox CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus"
+<KTextBox InputAttributes="InputAttributes" CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus"
           @ref="_textBoxObject" Placeholder="@Placeholder"
           Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged" TextExpression="()=>_text"/>
 
 @code {
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
     private KTextBox? _textBoxObject;
     private string? _text { get; set; }
     private TValue? _oldValue { get; set; }
@@ -13,7 +15,7 @@
     [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
     [Parameter] public int? Decimals { get; set; }
     [Parameter] public string? Format { get; set; }
-    [Parameter] [EditorRequired] public string? Placeholder { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
     [Parameter] public string? Currency { get; set; }
     [Parameter] public bool Readonly { get; set; }
     [Parameter] public TValue? Min { get; set; }
