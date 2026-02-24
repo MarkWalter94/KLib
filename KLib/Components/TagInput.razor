@@ -1,0 +1,155 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+
+<div class="tag-input @CssClass"  @attributes="InputAttributes">
+    <input class="form-control" placeholder="@Placeholder" value="@NewTag"
+           @oninput="OnInput"
+           @onkeydown="OnKeyDown"
+           @onkeydown:preventDefault="@ShouldPreventDefault" />
+    <div class="mt-2">
+        @if (TagsList?.Any() ?? false)
+        {
+            @foreach (var t in TagsList)
+            {
+                <span class="badge bg-secondary me-1 tag-chip">
+                    <span class="tag-text">@t</span>
+                    <span class="tag-x" @onclick="() => RemoveTag(t)" title="Rimuovi tag">×</span>
+                </span>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .tag-input .tag-chip {
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+
+    .tag-input .tag-text {
+        margin-right: 0.35rem;
+    }
+
+    .tag-input .tag-x {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1rem;
+        height: 1rem;
+        line-height: 1;
+        border-radius: 50%;
+        background: transparent;
+        border: none;
+        color: #fff;
+        opacity: 0.9;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 0.25rem;
+        font-weight: 600;
+    }
+
+    .tag-input .tag-x:hover {
+        opacity: 1;
+        color: #ffd1d1;
+    }
+</style>
+@code {
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? InputAttributes { get; set; }
+    [Parameter] public string? Tags { get; set; }
+    [Parameter] public EventCallback<string?> TagsChanged { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool AllowSpaceAsSeparator { get; set; } = true;
+    [Parameter] public bool AllowEnterAsSeparator { get; set; } = true;
+    [Parameter] public string? CssClass { get; set; }
+
+    private List<string> TagsList { get; set; } = new List<string>();
+    private string? NewTag { get; set; }
+    private bool ShouldPreventDefault { get; set; }
+    private string? _lastParsedTags;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        // Riesegue il parsing solo se Tags è cambiato dall'esterno
+        if (Tags != _lastParsedTags)
+        {
+            _lastParsedTags = Tags;
+            ParseTagsFromString();
+        }
+    }
+
+    private void ParseTagsFromString()
+    {
+        if (string.IsNullOrWhiteSpace(Tags))
+        {
+            TagsList = new List<string>();
+            return;
+        }
+
+        TagsList = Tags.Split(',').Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? string.Empty;
+
+        // Se lo spazio è il separatore e l'input finisce con spazio, crea il tag
+        if (AllowSpaceAsSeparator && value.EndsWith(" "))
+        {
+            NewTag = value.TrimEnd();
+            await AddTagFromInput();
+        }
+        else
+        {
+            NewTag = value;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        // Previeni il default solo su Enter per non fare il submit del form
+        ShouldPreventDefault = AllowEnterAsSeparator && e.Key == "Enter";
+
+        if (ShouldPreventDefault)
+        {
+            await AddTagFromInput();
+        }
+    }
+
+    private async Task AddTagFromInput()
+    {
+        var tag = NewTag?.Trim();
+        if (string.IsNullOrEmpty(tag))
+        {
+            NewTag = null;
+            return;
+        }
+
+        if (!TagsList.Any(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+        {
+            TagsList.Add(tag);
+            await NotifyParent();
+        }
+
+        NewTag = null;
+    }
+
+    private async Task RemoveTag(string tag)
+    {
+        if (TagsList.Remove(tag))
+        {
+            await NotifyParent();
+        }
+    }
+
+    private async Task NotifyParent()
+    {
+        Tags = TagsList.Any() ? string.Join(", ", TagsList) : null;
+        _lastParsedTags = Tags; // allineo per evitare re-parse in OnParametersSet
+        if (TagsChanged.HasDelegate)
+            await TagsChanged.InvokeAsync(Tags);
+    }
+}
