@@ -1,7 +1,7 @@
 @using System.Globalization
 @typeparam TValue
 
-<KTextBox InputAttributes="InputAttributes" CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus"
+<KTextBox InputAttributes="_mergedAttributes" CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus"
           @ref="_textBoxObject" Placeholder="@Placeholder"
           Readonly="@Readonly" Text="@_text" TextChanged="OnTextChanged" TextExpression="()=>_text"/>
 
@@ -21,7 +21,14 @@
     [Parameter] public TValue? Min { get; set; }
     [Parameter] public TValue? Max { get; set; }
     [Parameter] public string? CssClass { get; set; }
-    [Parameter] public string InputType { get; set; } = "number";
+    [Parameter] public string InputType { get; set; } = "text";
+
+    // Aggiunge inputmode="decimal" automaticamente per tastiera numerica su mobile,
+    // a meno che l'utente non l'abbia già specificato
+    private Dictionary<string, object> _mergedAttributes =>
+        InputAttributes.ContainsKey("inputmode")
+            ? InputAttributes
+            : new Dictionary<string, object>(InputAttributes) { ["inputmode"] = "decimal" };
 
     protected override void OnParametersSet()
     {
@@ -50,15 +57,24 @@
             ValueChanged.InvokeAsync(Value);
             return;
         }
+
+        // Normalizza: accetta sia virgola che punto come separatore decimale
+        var cultureSep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        newText = cultureSep == ","
+            ? newText.Replace(".", ",")
+            : newText.Replace(",", ".");
         
         try
         {
             var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
-            var method = type.GetMethod("Parse", new[] { typeof(string) });
+            var method = type.GetMethod("Parse", new[] { typeof(string), typeof(IFormatProvider) });
             var parameters = new List<object> { newText };
             if (method == null)
             {
-                method = type.GetMethod("Parse", new[] { typeof(string), typeof(IFormatProvider) });
+                method = type.GetMethod("Parse", new[] { typeof(string) });
+            }
+            else
+            {
                 parameters.Add(CultureInfo.CurrentCulture);
             }
 
@@ -72,12 +88,10 @@
         }
         catch
         {
-            // Rollback in case of an error
             _text = oldText;
             _textBoxObject?.Refresh();
         }
 
-        // Rollback if parsing fails
         _text = oldText;
         _textBoxObject?.Refresh();
     }
@@ -114,9 +128,11 @@
 
     private void ConvertValueToText()
     {
+        // Usa sempre la cultura corrente: il campo è "text", accetta virgola/punto come da locale
         _text = Format != null && Value is IFormattable formattableValue
             ? formattableValue.ToString(Format, CultureInfo.CurrentCulture)
-            : Value.ToString()!;
+            : Value?.ToString() ?? string.Empty;
+
         if (!string.IsNullOrEmpty(Currency))
         {
             _text = $"{_text} {Currency}";
@@ -124,3 +140,4 @@
     }
 
 }
+
