@@ -81,6 +81,7 @@
             if (method != null)
             {
                 Value = (TValue)method.Invoke(null, parameters.ToArray())!;
+                Value = ApplyDecimals(Value);
                 ValueChanged.InvokeAsync(Value);
                 ValidateValue();
                 return;
@@ -98,6 +99,8 @@
 
     private void ValidateValue()
     {
+        Value = ApplyDecimals(Value);
+
         if (Min is IEquatable<TValue> iemin && Max is IEquatable<TValue> iemax)
         {
             if (Min != null && !iemin.Equals(iemax))
@@ -124,6 +127,27 @@
         }
 
         ConvertValueToText();
+    }
+
+    private TValue ApplyDecimals(TValue value)
+    {
+        if (!Decimals.HasValue)
+            return value;
+
+        var boxed = (object?)value;
+        if (boxed == null)
+            return value;
+
+        var decimals = Decimals.Value;
+
+        if (boxed is decimal dec)
+            return (TValue)(object)Math.Round(dec, decimals, MidpointRounding.AwayFromZero);
+        if (boxed is double dbl)
+            return (TValue)(object)Math.Round(dbl, decimals, MidpointRounding.AwayFromZero);
+        if (boxed is float fl)
+            return (TValue)(object)MathF.Round(fl, decimals, MidpointRounding.AwayFromZero);
+
+        return value;
     }
 
     private void ConvertValueToText()
