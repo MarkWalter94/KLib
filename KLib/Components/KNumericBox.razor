@@ -112,7 +112,7 @@
                 }
             }
 
-            if (Max != null && !iemax.Equals(iemin))
+            if (Max != null && !iemax.Equals(iemin) && Comparer<TValue>.Default.Compare(Max, Min) > 0)
             {
                 if (Comparer<TValue>.Default.Compare(Value, Max) > 0)
                 {
