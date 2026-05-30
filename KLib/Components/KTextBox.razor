@@ -5,14 +5,34 @@
     {
         <label for="@Id" class="form-label">@Placeholder</label>
     }
-    <InputText @attributes="InputAttributes" type="@InputType" class=@($"ktextbox form-control {CssClass}")
-               Value="@Text" ValueChanged="@((string? s)=>OnChange(s))" ValueExpression="@TextExpression" @oninput="OnInput"
-               readonly="@Readonly"/>
-
+    @if (ShowPasswordToggle)
+    {
+        <div style="position: relative; width: 100%;">
+            <InputText @attributes="InputAttributes" type="@(_passwordVisible ? "text" : InputType)" class=@($"ktextbox form-control {CssClass}")
+                       Value="@Text" ValueChanged="@((string? s)=>OnChange(s))" ValueExpression="@TextExpression" @oninput="OnInput"
+                       readonly="@Readonly"/>
+            <span class="material-icons"
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; user-select: none; z-index: 10;"
+                  @onclick="() => _passwordVisible = !_passwordVisible">
+                @(_passwordVisible ? "visibility" : "visibility_off")
+            </span>
+        </div>
+    }
+    else
+    {
+        <InputText @attributes="InputAttributes" type="@InputType" class=@($"ktextbox form-control {CssClass}")
+                   Value="@Text" ValueChanged="@((string? s)=>OnChange(s))" ValueExpression="@TextExpression" @oninput="OnInput"
+                   readonly="@Readonly"/>
+    }
 </div>
 
 @code {
     [Parameter] public string? InputType { get; set; } = "text";
+
+    /// <summary>Se true, mostra un'icona occhio per rivelare/nascondere il testo (per campi password). Lo stato è gestito internamente.</summary>
+    [Parameter] public bool ShowPasswordToggle { get; set; }
+    private bool _passwordVisible;
+
     [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
     [Parameter] public string? Placeholder { get; set; }
     [Parameter] public bool Readonly { get; set; }
