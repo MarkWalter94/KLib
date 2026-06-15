@@ -1,4 +1,5 @@
 @using System.Globalization
+@using System.Linq
 @typeparam TValue
 
 <KTextBox InputAttributes="_mergedAttributes" CssClass="@CssClass" InputType="@InputType" TextChangingMode="KTextBox.TextChangedMode.LostFocus"
@@ -46,10 +47,11 @@
     {
         var oldText = _text;
         if (!string.IsNullOrEmpty(Currency) && newText?.Contains(Currency) == true)
-            newText = newText.Replace(Currency, string.Empty).Trim();
+            newText = newText.Replace(Currency, string.Empty);
 
+        newText = newText?.Trim();
         _text = newText;
-        
+
         if(string.IsNullOrEmpty(newText))
         {
             //Gestisco il caso di valore nullo
@@ -58,24 +60,24 @@
             return;
         }
 
-        // Normalizza: accetta sia virgola che punto come separatore decimale
-        var cultureSep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-        newText = cultureSep == ","
-            ? newText.Replace(".", ",")
-            : newText.Replace(",", ".");
-        
+        // Normalizza in una stringa "invariant" (separatore decimale ".") gestendo in
+        // modo robusto separatori multipli, di migliaia e input "sporco" (es. il valore
+        // formattato con la valuta già presente nel campo, tipico su tastiere touch).
+        var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+        var allowsDecimals = type == typeof(decimal) || type == typeof(double) || type == typeof(float);
+        var normalized = NormalizeNumericInput(newText, allowsDecimals);
+
         try
         {
-            var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
             var method = type.GetMethod("Parse", new[] { typeof(string), typeof(IFormatProvider) });
-            var parameters = new List<object> { newText };
+            var parameters = new List<object> { normalized };
             if (method == null)
             {
                 method = type.GetMethod("Parse", new[] { typeof(string) });
             }
             else
             {
-                parameters.Add(CultureInfo.CurrentCulture);
+                parameters.Add(CultureInfo.InvariantCulture);
             }
 
             if (method != null)
@@ -95,6 +97,34 @@
 
         _text = oldText;
         _textBoxObject?.Refresh();
+    }
+
+    /// <summary>
+    /// Converte un input numerico potenzialmente "sporco" in una stringa canonica con "."
+    /// come separatore decimale. Considera l'ultimo separatore (virgola o punto) come decimale
+    /// e rimuove gli altri (separatori di migliaia/duplicati). Per i tipi interi rimuove ogni
+    /// separatore. Tiene solo cifre, separatori e l'eventuale segno iniziale.
+    /// </summary>
+    private static string NormalizeNumericInput(string input, bool allowsDecimals)
+    {
+        var negative = input.TrimStart().StartsWith("-");
+        var cleaned = new string(input.Where(char.IsDigit).ToArray());
+
+        if (allowsDecimals)
+        {
+            var lastSep = Math.Max(input.LastIndexOf(','), input.LastIndexOf('.'));
+            if (lastSep >= 0)
+            {
+                var intDigits = new string(input.Substring(0, lastSep).Where(char.IsDigit).ToArray());
+                var fracDigits = new string(input.Substring(lastSep + 1).Where(char.IsDigit).ToArray());
+                cleaned = fracDigits.Length > 0 ? $"{intDigits}.{fracDigits}" : intDigits;
+            }
+        }
+
+        if (string.IsNullOrEmpty(cleaned))
+            return negative ? "-0" : "0";
+
+        return negative ? $"-{cleaned}" : cleaned;
     }
 
     private void ValidateValue()
